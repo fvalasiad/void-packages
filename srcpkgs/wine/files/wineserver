@@ -5,13 +5,25 @@
 wineserver32=/usr/libexec/wine/wineserver32
 wineserver64=/usr/libexec/wine/wineserver64
 
-if test -x "$wineserver64"; then
-    wineserver=$wineserver64
-elif test -x "$wineserver32"; then
-    wineserver=$wineserver32
+# Determine the parent process architecture
+arch=$(file -L /proc/$PPID/exe | grep -o 'ELF 32-bit\|ELF 64-bit')
+
+if test "$arch" = "ELF 32-bit"; then
+     if test -x "$wineserver32"; then
+         wineserver=$wineserver32
+     else
+	 echo "error: unable to find 32bit wineserver executable." >&2
+	 exit 1
+     fi
+elif test "$arch" = "ELF 64-bit"; then
+     if test -x "$wineserver64"; then
+         wineserver=$wineserver64
+     else
+	 echo "error: unable to find 64bit wineserver executable." >&2
+	 exit 1
+     fi
 else
-    echo "error: unable to find wineserver executable." >&2
-    echo "wine and/or wine-32bit must be installed." >&2
+    echo "error: unable to determine architecture." >&2
     exit 1
 fi
 
