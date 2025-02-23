@@ -2,12 +2,12 @@
 # Based on the Debian wrapper script written by Jens Reyer and Michael Gilbert
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-wine32=/usr/libexec/wine/wine
+wine32=/usr/libexec/wine/wine32
 wine64=/usr/libexec/wine/wine64
 
 wine32_hint () {
     if [ "$(xbps-uhelper arch)" = "x86_64-musl" ]; then
-        echo "wine support under musl is limited to 64bit"
+        echo "wine under musl supports both 64bit & 32bit under the new experimental WoW64 mode"
     else
         echo "it looks like wine-32bit is missing, you should install it."
         if uname -a | grep "x86_64" > /dev/null && xbps-query -l | grep void-repo-multilib > /dev/null; then
@@ -42,4 +42,8 @@ if test -z "$WINEDEBUG"; then
     export WINEDEBUG=fixme-all
 fi
 
-exec $wine "$@"
+appname=$(basename "$0")
+case "$appname" in
+	wine|wine32|wine64) exec $wine "$@" ;;
+	*) exec $wine "$appname.exe" "$@" ;;
+esac
